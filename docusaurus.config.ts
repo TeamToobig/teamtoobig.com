@@ -26,6 +26,7 @@ const config: Config = {
   projectName: 'teamtoobig.com', // Usually your repo name.
 
   trailingSlash: false, // The docs strongly encouraged me to add this explicitly
+  deploymentBranch: 'gh-pages', // According to the docs this needs to be explicitly set for organization repos
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
