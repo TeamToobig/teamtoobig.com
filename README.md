@@ -1,41 +1,22 @@
-# Website
+# teamtoobig.com
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+This repo contains the source for [teamtoobig.com](https://teamtoobig.com/), the official website of Team Toobig.
 
-## Installation
+The site is built using [Docusaurus](https://docusaurus.io/).
 
-```bash
-yarn
+
+
+## Developing
+
+You need to have [Node.js](https://nodejs.org/en/download/) version 18.0 or above (which can be checked by running `node -v`).
+
+At the root of this repo, run
+
+```
+npm run start
 ```
 
-## Local Development
+The site will build and be hosted at [localhost:3000](http://localhost:3000). If you edit the files on your machine, the localhost page will auto-reload so you can immediately see your changes.
 
-```bash
-yarn start
-```
+Whenever a commit is pushed to the `main` branch of this repository (or whenever a pull request is merged to `main`), the live website at https://teamtoobig.com is immediately and automatically updated via Github Actions.
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
-
-## Build
-
-```bash
-yarn build
-```
-
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
-
-## Deployment
-
-Using SSH:
-
-```bash
-USE_SSH=true yarn deploy
-```
-
-Not using SSH:
-
-```bash
-GIT_USER=<Your GitHub username> yarn deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
