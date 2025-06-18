@@ -64,12 +64,9 @@ const config: Config = {
         src: 'img/icon.png',
       },
       items: [
-        {
-          type: 'docSidebar',
-          sidebarId: 'tutorialSidebar',
-          position: 'left',
-          label: 'Tutorial',
-        },
+        {to: '/docs', label: 'Docs', position: 'left'},
+        {to: '/about', label: 'About', position: 'left'},
+        {to: '/apply', label: 'Apply to Join!', position: 'left'},
       ],
     },
     prism: {
