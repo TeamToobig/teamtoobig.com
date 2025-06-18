@@ -21,3 +21,39 @@
   align-items: center;
   justify-content: center;
 }
+
+
+
+.background {
+  /* fallback color while image loads */
+  background: #000;
+  /* default background image for mobile/slow connections */
+  background-image: url('/img/background/deepfield-480.webp');
+  
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  width: 100vw;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: -1;
+}
+
+/* Responsive images for larger screens */
+@media (min-width: 600px) {
+  .background {
+    background-image: url('/img/background/deepfield-960.webp');
+  }
+}
+@media (min-width: 1200px) {
+  .background {
+    background-image: url('/img/background/deepfield-1920.webp');
+  }
+}
+@media (min-width: 1920px) {
+  .background {
+    background-image: url('/img/background/deepfield-2560.webp');
+  }
+}

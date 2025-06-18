@@ -34,6 +34,7 @@ export default function Home(): ReactNode {
     <Layout
       title={`Team Toobig`}
       description="Three days. One game. As many devs as we can possibly get.">
+      <div className={styles.background} />
       <HomepageHeader />
       <main>
         
