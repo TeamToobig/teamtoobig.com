@@ -61,7 +61,7 @@ const config: Config = {
       title: 'Team Toobig',
       logo: {
         alt: 'Terry',
-        src: 'img/icon.png',
+        src: 'img/navbar-icon.webp',
       },
       items: [
         {to: '/docs', label: 'Docs', position: 'left'},
