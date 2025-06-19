@@ -141,6 +141,16 @@
   color: white !important;
 }
 
+.applyButton {
+  background-color: #d4a7e6; /* Dark mode primary color - stays same in both themes */
+  border-color: #d4a7e6;
+  color: black;
+}
+
+.applyButton:hover {
+  background-color: #c68fdc !important; /* Dark mode primary-dark color for hover */
+}
+
 @media screen and (max-width: 768px) {
   .buttons {
     flex-direction: column;

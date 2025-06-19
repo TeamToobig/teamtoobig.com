@@ -24,7 +24,7 @@ function HomepageHeader() {
             Learn more
           </Link>
           <Link
-            className={`button button--primary button--lg ${styles.wideButton}`}
+            className={`button button--secondary button--lg ${styles.wideButton} ${styles.applyButton}`}
             to="/apply">
             Apply to join 🚀
           </Link>
