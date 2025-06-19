@@ -1,24 +1,307 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { Vector2 } from '../utils/Vector2';
+
+// UNITS IN THIS FILE:
+// - All distances are in multiples of Terry's length. So if positionX is 0.5, Terry is half a Terry length to the right of his starting position.
+// - All rotations are in degrees.
+// - All velocities are in distance/rotation units per second, normalized to the framerate.
+// - All accelerations are in velocities per second squared.
+
+interface TerryState {
+  position: Vector2;
+  rotation: number;
+  velocity: Vector2;
+  angularVelocity: number;
+
+  turnaroundDirection: Vector2; // Normalized/unitless
+  isTurnaroundInProgress: boolean;
+}
 
 const Terry: React.FC = () => {
   const imgRef = useRef<HTMLImageElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const lastTimeRef = useRef<number | null>(null);
+
+  const [terrySize, setTerrySize] = useState(0);
+
+  // State for Terry's position and physics
+  const [terryState, setTerryState] = useState<TerryState>({
+    position: Vector2.zero(),
+    rotation: 0,
+    velocity: Vector2.zero(),
+    angularVelocity: 0,
+    turnaroundDirection: Vector2.zero(),
+    isTurnaroundInProgress: false,
+  });
+
+  
+  const PHYSICS_CONFIG = {
+    TURNAROUND_DISTANCE: 0.12, // When Terry is further than this from the center, he will start turning around.
+    TURNAROUND_ACCELERATION: 0.01,
+    TURNAROUND_ANGLE_MIN: -5,
+    TURNAROUND_ANGLE_MAX: 20, // Bias Terry towards moving around in a counterclockwise circle.
+
+    GO_HOME_DISTANCE: 0.3, // When Terry is further than this from the center, he will go STRAIGHT back to the center, not the indirect path of a turnaround.
+    GO_HOME_ACCELERATION: 0.6,
+    GO_HOME_TARGET_SPEED: 1,
+
+    // Terry will try to settle into these velocities, so long as he is within range.
+    TARGET_VELOCITY: 0.018,
+    TARGET_ANGULAR_VELOCITY: 1.8,
+
+    TARGET_VELOCITY_RANGE: 0.2,
+
+    // While within range, if Terry is faster/slower than the target velocities, these accelerations/decelerations will be applied to fix him.
+    TARGET_VELOCITY_CORRECTION_ACCELERATION: 0.004,
+    TARGET_VELOCITY_CORRECTION_DECELERATION: 0.8,
+    TARGET_ANGULAR_VELOCITY_CORRECTION_ACCELERATION: 2,
+    TARGET_ANGULAR_VELOCITY_DRAG_COEFFICIENT: 0.98, // Drag coefficient - closer to 1 means less drag, closer to 0 means more drag
+
+
+    CLICK_LINEAR_IMPULSE_MAX: 0.5, // Linear impulse applied to Terry when clicking his exact center (scales to 0 towards his edge)
+    CLICK_ANGULAR_IMPULSE_MAX: 75, // Angular impulse applied to Terry when clicking his furthest edge (scales to 0 towards his center)
+  };
+
+  // Track Terry's size in pixels to use as a scale reference. This allows our physics to be independent of the screen resolution.
+  useEffect(() => {
+    const updateTerrySize = () => {
+      if (imgRef.current) {
+        const rect = imgRef.current.getBoundingClientRect();
+        // Terry is always square, so using either width or height should be fine either way.
+        setTerrySize(Math.max(rect.width, rect.height));
+      }
+    };
+
+    updateTerrySize();
+    window.addEventListener('resize', updateTerrySize);
+    return () => window.removeEventListener('resize', updateTerrySize);
+  }, []);
+
+  // Convert between our two units: pixels, and Terry units (1 terry unit == 1 length of Terry)
+  const terryToPixels = (terryUnits: number) => terryUnits * terrySize;
+  const pixelsToTerry = (pixels: number) => terrySize > 0 ? pixels / terrySize : 0;
+
+  // Initialize Terry
+  useEffect(() => {
+    const angleRadians = Math.random() * 2 * Math.PI; // Random direction
+    const initialVelocity = Vector2.fromAngle(angleRadians, PHYSICS_CONFIG.TARGET_VELOCITY);
+    
+    setTerryState(prevState => ({
+      ...prevState,
+      position: Vector2.zero(),
+      velocity: initialVelocity,
+      angularVelocity: (Math.random() < 0.5 ? -1 : 1) * PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY,
+      isTurnaroundInProgress: false,
+    }));
+  }, []);
+
+  // Physics update function. Called once per frame by the animation loop, below.
+  // deltaTime is the number of seconds (usually small like 0.016) since the last time this was called.
+  const updatePhysics = useCallback((deltaTime: number) => {
+    setTerryState(prevState => {
+      const newState = { ...prevState };
+      
+      const distanceFromCenter = newState.position.magnitude();
+
+      // If we're too far away from the center, we need to head straight back.
+      // Usually happens when you click on Terry to send him far.
+      if (distanceFromCenter > PHYSICS_CONFIG.GO_HOME_DISTANCE) {
+        newState.isTurnaroundInProgress = false;
+        
+        // Calculate direction vector towards center (0,0)
+        const toCenter = newState.position.multiply(-1).normalized();
+        
+        // Calculate target velocity vector
+        const targetVelocity = toCenter.multiply(PHYSICS_CONFIG.GO_HOME_TARGET_SPEED);
+        
+        // Calculate velocity difference to reach target
+        const velocityDiff = targetVelocity.subtract(newState.velocity);
+        
+        // Apply acceleration towards target velocity, but don't overshoot
+        const velocityDiffMagnitude = velocityDiff.magnitude();
+        if (velocityDiffMagnitude > 0) {
+          var acceleration = PHYSICS_CONFIG.GO_HOME_ACCELERATION * deltaTime;
+          acceleration = Math.min(acceleration, velocityDiffMagnitude);
+          const accelerationVector = velocityDiff.normalized().multiply(acceleration);
+          
+          newState.velocity = newState.velocity.add(accelerationVector);
+        }
+      }
+      // Check if we need to start turning around
+      else if (distanceFromCenter > PHYSICS_CONFIG.TURNAROUND_DISTANCE && !newState.isTurnaroundInProgress) {
+        // Calculate direction straight back to center.
+        const toCenter = newState.position.multiply(-1).normalized();
+        
+        // Pick the new direction to accelerate in
+        const degreesToRadians = (Math.PI / 180);
+        const centerAngle = toCenter.angle();
+        const randomOffset = Math.random() * (PHYSICS_CONFIG.TURNAROUND_ANGLE_MAX - PHYSICS_CONFIG.TURNAROUND_ANGLE_MIN) + PHYSICS_CONFIG.TURNAROUND_ANGLE_MIN;
+        const correctionAngle = centerAngle + randomOffset * degreesToRadians;
+        
+        newState.turnaroundDirection = Vector2.fromAngle(correctionAngle);
+        
+        newState.isTurnaroundInProgress = true;
+      }
+      
+      // If we're outside the turnaround distance, apply the turnaround acceleration
+      if (distanceFromCenter > PHYSICS_CONFIG.TURNAROUND_DISTANCE && newState.isTurnaroundInProgress) {
+        const acceleration = PHYSICS_CONFIG.TURNAROUND_ACCELERATION * deltaTime;
+        newState.velocity = newState.velocity.add(newState.turnaroundDirection.multiply(acceleration));
+      }
+      
+      // Stop the turnaround if we're back in range
+      if (distanceFromCenter < PHYSICS_CONFIG.TURNAROUND_DISTANCE && newState.isTurnaroundInProgress) {
+        newState.isTurnaroundInProgress = false;
+      }
+
+      // Apply velocity targeting (deceleration when too fast, acceleration when too slow) within range
+      if (distanceFromCenter < PHYSICS_CONFIG.TARGET_VELOCITY_RANGE) {
+        const velocityMagnitude = newState.velocity.magnitude();
+        const normalizedVelocity = newState.velocity.normalized();
+
+        if (velocityMagnitude > PHYSICS_CONFIG.TARGET_VELOCITY) {
+          // Apply deceleration to slow down Terry
+          var decelerationFactor = PHYSICS_CONFIG.TARGET_VELOCITY_CORRECTION_DECELERATION * deltaTime;
+          decelerationFactor = Math.min(decelerationFactor, velocityMagnitude - PHYSICS_CONFIG.TARGET_VELOCITY); // Don't decelerate too much and overshoot the target
+          
+          newState.velocity = newState.velocity.subtract(normalizedVelocity.multiply(decelerationFactor));
+        }
+        if (velocityMagnitude < PHYSICS_CONFIG.TARGET_VELOCITY) {
+          // Apply acceleration to speed up Terry
+          var accelerationFactor = PHYSICS_CONFIG.TARGET_VELOCITY_CORRECTION_ACCELERATION * deltaTime;
+          accelerationFactor = Math.min(accelerationFactor, PHYSICS_CONFIG.TARGET_VELOCITY - velocityMagnitude); // Don't accelerate too much and overshoot the target
+                    
+          newState.velocity = newState.velocity.add(normalizedVelocity.multiply(accelerationFactor));
+        }
+
+        
+        const angularVelocityMagnitude = Math.abs(newState.angularVelocity);
+        
+        if (angularVelocityMagnitude > PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY) {
+          // Apply angular drag - higher angular velocity results in more drag
+          const dragFactor = Math.pow(PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY_DRAG_COEFFICIENT, deltaTime * 60); // Normalize to 60fps for consistent behavior
+          newState.angularVelocity *= dragFactor;
+          
+          // If we're now close to the target, clamp to target to avoid oscillation
+          const newMagnitude = Math.abs(newState.angularVelocity);
+          if (newMagnitude <= PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY) {
+            const direction = newState.angularVelocity > 0 ? 1 : -1;
+            newState.angularVelocity = direction * PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY;
+          }
+        }
+        if (angularVelocityMagnitude < PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY) {
+          // Apply angular acceleration to speed up Terry's rotation
+          var angularAccelerationFactor = PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY_CORRECTION_ACCELERATION * deltaTime;
+          angularAccelerationFactor = Math.min(angularAccelerationFactor, PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY - angularVelocityMagnitude);
+
+          const angularDirection = newState.angularVelocity !== 0 ? (newState.angularVelocity > 0 ? 1 : -1) : (Math.random() < 0.5 ? -1 : 1);
+          newState.angularVelocity += angularDirection * angularAccelerationFactor;
+        }
+      }
+      
+      // Update position based on velocity
+      newState.position = newState.position.add(newState.velocity.multiply(deltaTime));
+      
+      // Update rotation based on angular velocity
+      newState.rotation += newState.angularVelocity * deltaTime;
+      
+      // Keep rotation in reasonable bounds
+      newState.rotation = newState.rotation % 360;
+
+      return newState;
+    });
+  }, []);
+
+  // Animation loop. Calls updatePhysics once per frame.
+  useEffect(() => {
+    const animate = (currentTime: number) => {
+      if (lastTimeRef.current !== null) {
+        const deltaTime_milliseconds = currentTime - lastTimeRef.current;
+        const deltaTime = deltaTime_milliseconds / 1000;
+        updatePhysics(deltaTime);
+      }
+      lastTimeRef.current = currentTime;
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [updatePhysics]);
+
+  // Handle clicks on Terry
+  const handleClick = useCallback((event: React.MouseEvent) => {
+    if (!imgRef.current || !containerRef.current) return;
+
+    // Get click position relative to Terry's center
+    const rect = imgRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const clickX = event.clientX - centerX;
+    const clickY = event.clientY - centerY;
+
+    const distanceFromCenterPixels = Math.sqrt(clickX * clickX + clickY * clickY);
+    const terryRadius = terrySize / 2;
+    const normalizedDistance = Math.min(distanceFromCenterPixels / terryRadius, 1);
+
+    // Linear impulse should be maximum at center (distance 0), minimum at edge (distance 1)
+    const linearImpulseMagnitude = PHYSICS_CONFIG.CLICK_LINEAR_IMPULSE_MAX * (1 - normalizedDistance);
+    // Angular impulse should be minimum at center (distance 0), maximum at edge (distance 1)  
+    const angularImpulseMagnitude = PHYSICS_CONFIG.CLICK_ANGULAR_IMPULSE_MAX * normalizedDistance;
+    
+    // Calculate direction from cursor to Terry's center (opposite of click direction)
+    const directionX = distanceFromCenterPixels > 0 ? -clickX / distanceFromCenterPixels : 0;
+    const directionY = distanceFromCenterPixels > 0 ? -clickY / distanceFromCenterPixels : 0;
+    
+    const linearImpulseX = directionX * linearImpulseMagnitude;
+    const linearImpulseY = directionY * linearImpulseMagnitude;
+    
+    const angularDirection = clickX > 0 ? -1 : 1;
+    const angularImpulse = angularDirection * angularImpulseMagnitude;
+    
+    setTerryState(prevState => ({
+      ...prevState,
+      velocity: prevState.velocity.add(new Vector2(linearImpulseX, linearImpulseY)),
+      angularVelocity: prevState.angularVelocity + angularImpulse,
+    }));
+  }, [terrySize]);
 
   return (
-    <img
-      ref={imgRef}
-      src="/img/terry.webp"
-      alt="Terry"
+    <div 
+      ref={containerRef}
       style={{
         width: '100%',
         height: '100%',
-        objectFit: 'contain',
-        maxWidth: '80vh',
-        maxHeight: '80vh',
-        pointerEvents: 'none',
-        userSelect: 'none',
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
-      draggable={false}
-    />
+    >
+      <img
+        ref={imgRef}
+        src="/img/terry.webp"
+        alt="Terry"
+        onClick={handleClick}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+          maxWidth: '80vh',
+          maxHeight: '80vh',
+          userSelect: 'none',
+          position: 'absolute',
+          transform: `translate(${terryToPixels(terryState.position.x)}px, ${terryToPixels(terryState.position.y)}px) rotate(${terryState.rotation}deg)`,
+          transition: 'none', // Disable CSS transitions for smooth animation
+        }}
+        draggable={false}
+      />
+    </div>
   );
 };
 

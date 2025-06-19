@@ -10,7 +10,15 @@ The site is built using [Docusaurus](https://docusaurus.io/).
 
 You need to have [Node.js](https://nodejs.org/en/download/) version 18.0 or above (which can be checked by running `node -v`).
 
-At the root of this repo, run
+At the root of this repo, run:
+
+```
+npm install
+```
+
+This only needs to be run once. It pulls the Docusaurus packages listed in `package.json`.
+
+Now, when you want to test the website locally, run:
 
 ```
 npm run start
