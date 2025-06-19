@@ -64,8 +64,8 @@ const config: Config = {
         src: 'img/navbar-icon.webp',
       },
       items: [
-        {to: '/docs', label: 'Docs', position: 'left'},
         {to: '/about', label: 'About', position: 'left'},
+        {to: '/docs', label: 'Docs', position: 'left'},
         {to: '/apply', label: 'Apply to Join!', position: 'left'},
       ],
     },

@@ -3,6 +3,7 @@ import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Heading from '@theme/Heading';
+import Terry from '@site/src/components/FloatingTerry';
 
 import styles from './index.module.css';
 
@@ -14,8 +15,14 @@ function HomepageHeader() {
         <Heading as="h1" className={styles.heroTitle}>
           {siteConfig.title}
         </Heading>
-        <p className={styles.heroSubtitle}>{siteConfig.tagline}</p>
+        <p className={styles.heroSubtitle}>We're assembling the biggest game jam team in history.</p>
+        <p className={styles.heroSubtitle}>Three days. One game. As many devs as we can possibly get.</p>
         <div className={styles.buttons}>
+          <Link
+            className={`button button--secondary button--lg ${styles.wideButton} ${styles.learnMoreButton}`}
+            to="/about">
+            Learn more
+          </Link>
           <Link
             className={`button button--primary button--lg ${styles.wideButton}`}
             to="/apply">
@@ -34,12 +41,14 @@ export default function Home(): ReactNode {
       title={`Team Toobig`}
       description="Three days. One game. As many devs as we can possibly get.">
       <div className={styles.background} />
-      <div className={styles.heroWrapper}>
-        <HomepageHeader />
+      <div className={styles.mainContainer}>
+        <div className={styles.terryContainer}>
+          <Terry/>
+        </div>
+        <div className={styles.infoContainer}>
+          <HomepageHeader />
+        </div>
       </div>
-      <main>
-        
-      </main>
     </Layout>
   );
 }

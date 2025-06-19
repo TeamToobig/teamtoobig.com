@@ -3,28 +3,72 @@
  * and scoped locally.
  */
 
-.heroWrapper {
-  position: relative;
-  height: 100vh;
+/* Main container for the entire layout */
+.mainContainer {
+  display: flex;
+  min-height: 100vh;
   width: 100%;
+  position: fixed; /* No scrollbar! */
+  z-index: 1;
 }
 
-.heroContent {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+/* Terry container */
+.terryContainer {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1;
+  flex: 1;
+  min-height: 50vh;
+}
+
+/* Info container */
+.infoContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 2rem;
+  position: relative;
+  right: 10vw;
+  bottom: 15vh;
+}
+
+/* Responsive layout - vertical on smaller screens */
+@media screen and (max-width: 1100px) {
+  .mainContainer {
+    flex-direction: column;
+    height: auto;
+    position: relative; /* Yes scrollbar! */
+    min-height: 100vh;
+  }
+  
+  .terryContainer {
+    order: 2; /* Terry goes to bottom on mobile */
+    min-height: 40vh;
+  }
+  
+  .infoContainer {
+    order: 1; /* Info goes to top on mobile */
+    flex: none;
+    min-height: 60vh;
+    right: 0;
+    left: 0;
+  }
+}
+
+.heroContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 .heroContainer {
   text-align: center;
   padding: 2rem;
   max-width: 800px;
+  width: 100%;
 }
 
 .heroTitle {
@@ -33,7 +77,7 @@
   font-weight: 800;
   margin-bottom: 1rem;
   color: white;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.7);
 }
 
 .heroSubtitle {
@@ -42,7 +86,7 @@
   font-weight: 400;
   margin-bottom: 2rem;
   color: white;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 0 8px black, 0 0 5px black;
 }
 
 @media screen and (max-width: 996px) {
@@ -63,14 +107,52 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .wideButton {
-  padding-left: 5rem !important;
-  padding-right: 5rem !important;
+  padding-left: 2rem !important;
+  padding-right: 2rem !important;
+  width: 250px;
+  min-width: 250px;
 }
 
+.learnMoreButton {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: white !important;
+}
 
+.learnMoreButton:hover {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+  color: white !important;
+}
+
+@media screen and (max-width: 768px) {
+  .buttons {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .wideButton {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+    width: 100%;
+    max-width: 280px;
+    min-width: 200px;
+  }
+  
+  .infoContainer {
+    padding: 1rem;
+    min-height: 50vh;
+  }
+  
+  .terryContainer {
+    min-height: 50vh;
+  }
+}
 
 .background {
   /* fallback color while image loads */
