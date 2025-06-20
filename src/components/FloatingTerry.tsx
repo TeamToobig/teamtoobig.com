@@ -251,14 +251,34 @@ const Terry: React.FC = () => {
     const clickX = event.clientX - centerX;
     const clickY = event.clientY - centerY;
 
-    // TODO: Calculate impulse based on click position
-    // TODO: Add randomization to the impulse
-    // TODO: Apply linear momentum based on click direction
-    // TODO: Apply angular momentum based on click position relative to center
+    // Calculate distance from cursor to Terry's center
+    const distanceFromCenter = Math.sqrt(clickX * clickX + clickY * clickY);
+    
+    // Calculate direction from cursor to Terry's center (opposite of click direction)
+    const directionX = distanceFromCenter > 0 ? -clickX / distanceFromCenter : 0;
+    const directionY = distanceFromCenter > 0 ? -clickY / distanceFromCenter : 0;
+    
+    // Generate random linear impulse magnitude
+    const linearImpulseMagnitude = PHYSICS_CONFIG.CLICK_IMPULSE_BASE * (0.5 + Math.random() * 0.5);
+    
+    // Calculate linear impulse components
+    const linearImpulseX = directionX * linearImpulseMagnitude;
+    const linearImpulseY = directionY * linearImpulseMagnitude;
+    
+    // Generate angular impulse based on distance (proportional to distance from center)
+    const maxDistance = Math.max(rect.width, rect.height) / 2; // Half of Terry's largest dimension
+    const normalizedDistance = Math.min(distanceFromCenter / maxDistance, 1); // Clamp to [0, 1]
+    const angularImpulseMagnitude = PHYSICS_CONFIG.CLICK_ANGULAR_BASE * normalizedDistance;
+    
+    // Random angular direction
+    const angularDirection = Math.random() < 0.5 ? -1 : 1;
+    const angularImpulse = angularDirection * angularImpulseMagnitude;
     
     setTerryState(prevState => ({
       ...prevState,
-      // TODO: Update velocities based on click impulse
+      velocityX: prevState.velocityX + linearImpulseX,
+      velocityY: prevState.velocityY + linearImpulseY,
+      angularVelocity: prevState.angularVelocity + angularImpulse,
     }));
   }, []);
 
