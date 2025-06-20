@@ -51,7 +51,7 @@ const Terry: React.FC = () => {
 
     // Angular velocity physics (matching linear velocity approach)
     MAX_ACCEPTABLE_ANGULAR_VELOCITY: 0.03, // Maximum angular velocity before deceleration kicks in
-    ANGULAR_DECELERATION_FORCE: 0.0001, // Deceleration applied when over max angular velocity
+    ANGULAR_DECELERATION_FORCE: 0.001, // Deceleration applied when over max angular velocity
     
     CORRECTION_ANGULAR_ACCELERATION_MIN: 0.01, // Minimum angular acceleration during correction
     CORRECTION_ANGULAR_ACCELERATION_MAX: 0.01, // Maximum angular acceleration during correction
