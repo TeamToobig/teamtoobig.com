@@ -9,6 +9,7 @@ interface TerryState {
   angularVelocity: number;
   correctionDirectionX: number; // Direction to accelerate when beyond threshold
   correctionDirectionY: number;
+  correctionAngularAcceleration: number; // Angular acceleration direction during correction
   isBeingCorrected: boolean; // Whether we're currently applying correction acceleration
 }
 
@@ -31,14 +32,12 @@ const Terry: React.FC = () => {
     angularVelocity: 0,
     correctionDirectionX: 0,
     correctionDirectionY: 0,
+    correctionAngularAcceleration: 0,
     isBeingCorrected: false,
   });
 
   
   const PHYSICS_CONFIG = {
-    // Remove auto damping as requested
-    ANGULAR_DAMPING: 0.99, // Keep angular damping for rotation
-
     DISTANCE_THRESHOLD_MULTIPLIER: 0.000001, // Distance threshold as multiple of Terry's size
     INITIAL_VELOCITY_MIN: 0.4, // Minimum magnitude for initial velocity (reduced)
     INITIAL_VELOCITY_MAX: 0.4, // Maximum magnitude for initial velocity (reduced)
@@ -49,6 +48,13 @@ const Terry: React.FC = () => {
 
     MAX_ACCEPTABLE_VELOCITY: 0.4, // Maximum velocity before deceleration kicks in (reduced)
     DECELERATION_FORCE: 0.05, // Deceleration applied when over max velocity (increased)
+
+    // Angular velocity physics (matching linear velocity approach)
+    MAX_ACCEPTABLE_ANGULAR_VELOCITY: 0.03, // Maximum angular velocity before deceleration kicks in
+    ANGULAR_DECELERATION_FORCE: 0.0001, // Deceleration applied when over max angular velocity
+    
+    CORRECTION_ANGULAR_ACCELERATION_MIN: 0.01, // Minimum angular acceleration during correction
+    CORRECTION_ANGULAR_ACCELERATION_MAX: 0.01, // Maximum angular acceleration during correction
 
     CLICK_IMPULSE_BASE: 5,
     CLICK_ANGULAR_BASE: 0.5,
@@ -99,6 +105,7 @@ const Terry: React.FC = () => {
       angularVelocity: (Math.random() - 0.5) * 0.2,
       correctionDirectionX: 0,
       correctionDirectionY: 0,
+      correctionAngularAcceleration: 0,
       isBeingCorrected: false,
     }));
   }, []);
@@ -108,8 +115,7 @@ const Terry: React.FC = () => {
     setTerryState(prevState => {
       const newState = { ...prevState };
 
-      // Apply angular damping only (no linear damping as requested)
-      newState.angularVelocity *= PHYSICS_CONFIG.ANGULAR_DAMPING;
+      // NO angular damping - zero angular drag as requested
       
       // Calculate distance from center
       const distanceFromCenter = Math.sqrt(newState.x * newState.x + newState.y * newState.y);
@@ -117,6 +123,9 @@ const Terry: React.FC = () => {
       
       // Current velocity magnitude
       const currentVelocityMagnitude = Math.sqrt(newState.velocityX * newState.velocityX + newState.velocityY * newState.velocityY);
+      
+      // Current angular velocity magnitude
+      const currentAngularVelocityMagnitude = Math.abs(newState.angularVelocity);
       
       // Check if we need to start correction (step 2)
       if (distanceFromCenter > distanceThreshold && !newState.isBeingCorrected) {
@@ -132,6 +141,26 @@ const Terry: React.FC = () => {
           
           newState.correctionDirectionX = Math.cos(correctionAngle);
           newState.correctionDirectionY = Math.sin(correctionAngle);
+          
+          // Pick random angular acceleration direction and amount
+          // 90% of the time, keep rotation in the same direction as current angular velocity
+          const angularAccelerationMagnitude = PHYSICS_CONFIG.CORRECTION_ANGULAR_ACCELERATION_MIN + 
+            Math.random() * (PHYSICS_CONFIG.CORRECTION_ANGULAR_ACCELERATION_MAX - PHYSICS_CONFIG.CORRECTION_ANGULAR_ACCELERATION_MIN);
+          
+          let angularDirection: number;
+          if (Math.abs(newState.angularVelocity) < 0.001) {
+            // If barely rotating, pick random direction
+            angularDirection = Math.random() < 0.5 ? -1 : 1;
+          } else if (Math.random() < 0.9) {
+            // 90% of the time: keep same direction as current rotation
+            angularDirection = newState.angularVelocity >= 0 ? 1 : -1;
+          } else {
+            // 10% of the time: try to rotate the other way
+            angularDirection = newState.angularVelocity >= 0 ? -1 : 1;
+          }
+          
+          newState.correctionAngularAcceleration = angularDirection * angularAccelerationMagnitude;
+          
           newState.isBeingCorrected = true;
         }
       }
@@ -141,6 +170,10 @@ const Terry: React.FC = () => {
         const acceleration = PHYSICS_CONFIG.CORRECTION_ACCELERATION * (deltaTime / 16);
         newState.velocityX += newState.correctionDirectionX * acceleration;
         newState.velocityY += newState.correctionDirectionY * acceleration;
+        
+        // Apply angular correction acceleration
+        const angularAcceleration = newState.correctionAngularAcceleration * (deltaTime / 16);
+        newState.angularVelocity += angularAcceleration;
       }
       
       // Stop correction if conditions are met (step 4)
@@ -150,6 +183,7 @@ const Terry: React.FC = () => {
             currentVelocityMagnitude >= PHYSICS_CONFIG.MIN_VELOCITY_TO_STOP_CORRECTION) ||
            distanceFromCenter > distanceThreshold * 5)) { // Emergency stop if too far
         newState.isBeingCorrected = false;
+        newState.correctionAngularAcceleration = 0; // Reset angular acceleration
       }
       
       // Apply velocity limiting (deceleration when too fast)
@@ -160,6 +194,16 @@ const Terry: React.FC = () => {
         const scale = 1 - (decelerationForce / currentVelocityMagnitude);
         newState.velocityX *= Math.max(0, scale);
         newState.velocityY *= Math.max(0, scale);
+      }
+      
+      // Apply angular velocity limiting (deceleration when spinning too fast)
+      if (currentAngularVelocityMagnitude > PHYSICS_CONFIG.MAX_ACCEPTABLE_ANGULAR_VELOCITY) {
+        const angularDecelerationForce = PHYSICS_CONFIG.ANGULAR_DECELERATION_FORCE * (deltaTime / 16);
+        
+        // Apply deceleration while preserving direction
+        const direction = newState.angularVelocity >= 0 ? 1 : -1;
+        const newMagnitude = Math.max(0, currentAngularVelocityMagnitude - angularDecelerationForce);
+        newState.angularVelocity = direction * newMagnitude;
       }
       
       // Update position based on velocity
