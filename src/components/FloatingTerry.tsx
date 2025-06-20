@@ -18,8 +18,8 @@ const Terry: React.FC = () => {
   const animationFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number | null>(null);
 
-  // Track window dimensions for responsive calculations
-  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  // Track Terry's size for responsive calculations
+  const [terrySize, setTerrySize] = useState({ width: 0, height: 0 });
 
   // State for Terry's position and physics
   const [terryState, setTerryState] = useState<TerryState>({
@@ -39,13 +39,13 @@ const Terry: React.FC = () => {
     // Remove auto damping as requested
     ANGULAR_DAMPING: 0.99, // Keep angular damping for rotation
 
-    DISTANCE_THRESHOLD_RATIO: 0.02, // Distance threshold as fraction of reference dimension (reduced)
-    INITIAL_VELOCITY_MIN: 1.5, // Minimum magnitude for initial velocity (reduced)
-    INITIAL_VELOCITY_MAX: 2.5, // Maximum magnitude for initial velocity (reduced)
+    DISTANCE_THRESHOLD_MULTIPLIER: 0.000001, // Distance threshold as multiple of Terry's size
+    INITIAL_VELOCITY_MIN: 0.4, // Minimum magnitude for initial velocity (reduced)
+    INITIAL_VELOCITY_MAX: 0.4, // Maximum magnitude for initial velocity (reduced)
     
     CORRECTION_ACCELERATION: 0.001, // Acceleration when beyond threshold (reduced)
     MIN_VELOCITY_TO_STOP_CORRECTION: 0.4, // Stop correction when velocity exceeds this (reduced)
-    CORRECTION_ANGLE_RANGE: Math.PI / 6, // 30 degrees in radians (reduced from 45)
+    CORRECTION_ANGLE_RANGE: Math.PI / 4, // 30 degrees in radians (reduced from 45)
 
     MAX_ACCEPTABLE_VELOCITY: 0.4, // Maximum velocity before deceleration kicks in (reduced)
     DECELERATION_FORCE: 0.05, // Deceleration applied when over max velocity (increased)
@@ -54,29 +54,34 @@ const Terry: React.FC = () => {
     CLICK_ANGULAR_BASE: 0.5,
   };
 
-  // Track window size for responsive physics
+  // Track Terry's size for physics calculations
   useEffect(() => {
-    const updateWindowSize = () => {
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    const updateTerrySize = () => {
+      if (imgRef.current) {
+        const rect = imgRef.current.getBoundingClientRect();
+        setTerrySize({ width: rect.width, height: rect.height });
+      }
     };
 
-    updateWindowSize();
-    window.addEventListener('resize', updateWindowSize);
-    return () => window.removeEventListener('resize', updateWindowSize);
+    updateTerrySize();
+    window.addEventListener('resize', updateTerrySize);
+    return () => window.removeEventListener('resize', updateTerrySize);
   }, []);
 
-  // Calculate reference dimension based on layout orientation
-  const getReferenceDimension = useCallback(() => {
-    // Use the breakpoint from CSS (1100px) to determine layout
-    const isVerticalLayout = windowSize.width <= 1100;
-    return isVerticalLayout ? windowSize.width : windowSize.height;
-  }, [windowSize]);
-
-  // Calculate max distance in pixels based on reference dimension
+  // Calculate distance threshold based on Terry's actual size
   const getDistanceThreshold = useCallback(() => {
-    const referenceDimension = getReferenceDimension();
-    return referenceDimension * PHYSICS_CONFIG.DISTANCE_THRESHOLD_RATIO;
-  }, [getReferenceDimension]);
+    // Use the larger dimension of Terry as the reference
+    const referenceDimension = Math.max(terrySize.width, terrySize.height);
+    return referenceDimension * PHYSICS_CONFIG.DISTANCE_THRESHOLD_MULTIPLIER;
+  }, [terrySize]);
+
+  // Update Terry's size when image loads
+  const handleImageLoad = useCallback(() => {
+    if (imgRef.current) {
+      const rect = imgRef.current.getBoundingClientRect();
+      setTerrySize({ width: rect.width, height: rect.height });
+    }
+  }, []);
 
   // Initialize Terry at center on mount
   useEffect(() => {
@@ -230,6 +235,7 @@ const Terry: React.FC = () => {
         src="/img/terry.webp"
         alt="Terry"
         onClick={handleClick}
+        onLoad={handleImageLoad}
         style={{
           width: '100%',
           height: '100%',
