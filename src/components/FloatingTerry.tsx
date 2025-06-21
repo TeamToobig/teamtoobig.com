@@ -46,15 +46,16 @@ const Terry: React.FC = () => {
     MIN_VELOCITY_TO_STOP_CORRECTION: 0.4, // Stop correction when velocity exceeds this (reduced)
     CORRECTION_ANGLE_RANGE: Math.PI / 4, // 30 degrees in radians (reduced from 45)
 
-    MAX_ACCEPTABLE_VELOCITY: 0.4, // Maximum velocity before deceleration kicks in (reduced)
+    MAX_ACCEPTABLE_VELOCITY: 0.8, // Maximum velocity before deceleration kicks in (reduced)
     DECELERATION_FORCE: 0.05, // Deceleration applied when over max velocity (increased)
+    MAX_SPEED_RANGE_MULTIPLIER: 0.5, // Range from origin where max speed limiting applies (as multiple of Terry's size)
 
     // Angular velocity physics (matching linear velocity approach)
-    MAX_ACCEPTABLE_ANGULAR_VELOCITY: 0.03, // Maximum angular velocity before deceleration kicks in
-    ANGULAR_DECELERATION_FORCE: 0.001, // Deceleration applied when over max angular velocity
+    MAX_ACCEPTABLE_ANGULAR_VELOCITY: 0.08, // Maximum angular velocity before deceleration kicks in (increased)
+    ANGULAR_DECELERATION_FORCE: 0.005, // Deceleration applied when over max angular velocity (increased)
     
-    CORRECTION_ANGULAR_ACCELERATION_MIN: 0.01, // Minimum angular acceleration during correction
-    CORRECTION_ANGULAR_ACCELERATION_MAX: 0.01, // Maximum angular acceleration during correction
+    CORRECTION_ANGULAR_ACCELERATION_MIN: 0.005, // Minimum angular acceleration during correction
+    CORRECTION_ANGULAR_ACCELERATION_MAX: 0.005, // Maximum angular acceleration during correction
 
     CLICK_IMPULSE_BASE: 5,
     CLICK_ANGULAR_BASE: 0.5,
@@ -79,6 +80,13 @@ const Terry: React.FC = () => {
     // Use the larger dimension of Terry as the reference
     const referenceDimension = Math.max(terrySize.width, terrySize.height);
     return referenceDimension * PHYSICS_CONFIG.DISTANCE_THRESHOLD_MULTIPLIER;
+  }, [terrySize]);
+
+  // Calculate max speed range based on Terry's actual size
+  const getMaxSpeedRange = useCallback(() => {
+    // Use the larger dimension of Terry as the reference
+    const referenceDimension = Math.max(terrySize.width, terrySize.height);
+    return referenceDimension * PHYSICS_CONFIG.MAX_SPEED_RANGE_MULTIPLIER;
   }, [terrySize]);
 
   // Update Terry's size when image loads
@@ -120,6 +128,7 @@ const Terry: React.FC = () => {
       // Calculate distance from center
       const distanceFromCenter = Math.sqrt(newState.x * newState.x + newState.y * newState.y);
       const distanceThreshold = getDistanceThreshold();
+      const maxSpeedRange = getMaxSpeedRange();
       
       // Current velocity magnitude
       const currentVelocityMagnitude = Math.sqrt(newState.velocityX * newState.velocityX + newState.velocityY * newState.velocityY);
@@ -143,7 +152,7 @@ const Terry: React.FC = () => {
           newState.correctionDirectionY = Math.sin(correctionAngle);
           
           // Pick random angular acceleration direction and amount
-          // 90% of the time, keep rotation in the same direction as current angular velocity
+          // 95% of the time, keep rotation in the same direction as current angular velocity
           const angularAccelerationMagnitude = PHYSICS_CONFIG.CORRECTION_ANGULAR_ACCELERATION_MIN + 
             Math.random() * (PHYSICS_CONFIG.CORRECTION_ANGULAR_ACCELERATION_MAX - PHYSICS_CONFIG.CORRECTION_ANGULAR_ACCELERATION_MIN);
           
@@ -151,11 +160,11 @@ const Terry: React.FC = () => {
           if (Math.abs(newState.angularVelocity) < 0.001) {
             // If barely rotating, pick random direction
             angularDirection = Math.random() < 0.5 ? -1 : 1;
-          } else if (Math.random() < 0.9) {
-            // 90% of the time: keep same direction as current rotation
+          } else if (Math.random() < 0.95) {
+            // 95% of the time: keep same direction as current rotation
             angularDirection = newState.angularVelocity >= 0 ? 1 : -1;
           } else {
-            // 10% of the time: try to rotate the other way
+            // 5% of the time: try to rotate the other way
             angularDirection = newState.angularVelocity >= 0 ? -1 : 1;
           }
           
@@ -167,12 +176,15 @@ const Terry: React.FC = () => {
       
       // Apply correction acceleration (step 3)
       if (newState.isBeingCorrected && distanceFromCenter > distanceThreshold) {
-        const acceleration = PHYSICS_CONFIG.CORRECTION_ACCELERATION * (deltaTime / 16);
+        // Scale acceleration exponentially with distance from center
+        const distanceRatio = distanceFromCenter / distanceThreshold;
+        const exponentialScale = Math.pow(distanceRatio, 1.3) / distanceRatio; // Exponential scaling (quadratic)
+        const acceleration = PHYSICS_CONFIG.CORRECTION_ACCELERATION * exponentialScale * (deltaTime / 16);
         newState.velocityX += newState.correctionDirectionX * acceleration;
         newState.velocityY += newState.correctionDirectionY * acceleration;
         
-        // Apply angular correction acceleration
-        const angularAcceleration = newState.correctionAngularAcceleration * (deltaTime / 16);
+        // Apply angular correction acceleration (also scaled exponentially)
+        const angularAcceleration = newState.correctionAngularAcceleration * exponentialScale * (deltaTime / 16);
         newState.angularVelocity += angularAcceleration;
       }
       
@@ -186,8 +198,9 @@ const Terry: React.FC = () => {
         newState.correctionAngularAcceleration = 0; // Reset angular acceleration
       }
       
-      // Apply velocity limiting (deceleration when too fast)
-      if (currentVelocityMagnitude > PHYSICS_CONFIG.MAX_ACCEPTABLE_VELOCITY) {
+      // Apply linear velocity limiting (deceleration when too fast) - only within max speed range
+      if (distanceFromCenter <= maxSpeedRange && 
+          currentVelocityMagnitude > PHYSICS_CONFIG.MAX_ACCEPTABLE_VELOCITY) {
         const decelerationForce = PHYSICS_CONFIG.DECELERATION_FORCE * (deltaTime / 16);
         
         // Apply deceleration proportionally to each velocity component
@@ -196,7 +209,7 @@ const Terry: React.FC = () => {
         newState.velocityY *= Math.max(0, scale);
       }
       
-      // Apply angular velocity limiting (deceleration when spinning too fast)
+      // Apply angular velocity limiting (deceleration when spinning too fast) - always applies
       if (currentAngularVelocityMagnitude > PHYSICS_CONFIG.MAX_ACCEPTABLE_ANGULAR_VELOCITY) {
         const angularDecelerationForce = PHYSICS_CONFIG.ANGULAR_DECELERATION_FORCE * (deltaTime / 16);
         
@@ -218,7 +231,7 @@ const Terry: React.FC = () => {
 
       return newState;
     });
-  }, [getDistanceThreshold]);
+  }, [getDistanceThreshold, getMaxSpeedRange]);
 
   // Animation loop
   useEffect(() => {
