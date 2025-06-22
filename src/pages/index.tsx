@@ -7,14 +7,11 @@ import Terry from '@site/src/components/FloatingTerry';
 
 import styles from './index.module.css';
 
-function HomepageHeader() {
-  const {siteConfig} = useDocusaurusContext();
+function InfoBox() {
   return (
     <header className={styles.heroContent}>
       <div className={styles.heroContainer}>
-        <Heading as="h1" className={styles.heroTitle}>
-          {siteConfig.title}
-        </Heading>
+        <Heading as="h1" className={styles.heroTitle}>Team Toobig</Heading>
         <p className={styles.heroSubtitle}>We're assembling the biggest game jam team in history.</p>
         <p className={styles.heroSubtitle}>Three days. One game. As many devs as we can possibly get.</p>
         <div className={styles.buttons}>
@@ -35,10 +32,10 @@ function HomepageHeader() {
 }
 
 export default function Home(): ReactNode {
-  const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
       title={`Team Toobig`}
+      // Description is used in the social card (emebed on discord, linkedin etc)
       description="Three days. One game. As many devs as we can possibly get.">
       <div className={styles.background} />
       <div className={styles.mainContainer}>
@@ -46,7 +43,7 @@ export default function Home(): ReactNode {
           <Terry/>
         </div>
         <div className={styles.infoContainer}>
-          <HomepageHeader />
+          <InfoBox />
         </div>
       </div>
     </Layout>
