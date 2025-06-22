@@ -231,7 +231,12 @@ const Terry: React.FC = () => {
     const animate = (currentTime: number) => {
       if (lastTimeRef.current !== null) {
         const deltaTime_milliseconds = currentTime - lastTimeRef.current;
-        const deltaTime = deltaTime_milliseconds / 1000;
+        let deltaTime = deltaTime_milliseconds / 1000;
+        
+        // Cap delta time to prevent huge jumps when tab becomes active again.
+        // requestAnimationFrame doesn't run while you're in another tab, so without capping it, we can end up with enormous delta times that send terry FLYING.
+        const MAX_DELTA_TIME = 0.3;
+        deltaTime = Math.min(deltaTime, MAX_DELTA_TIME);
 
         if (!prefersReducedMotion) // Don't animate if user prefers reduced motion
           updatePhysics(deltaTime);
