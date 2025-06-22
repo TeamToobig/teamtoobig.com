@@ -24,6 +24,7 @@ const Terry: React.FC = () => {
   const lastTimeRef = useRef<number | null>(null);
 
   const [terrySize, setTerrySize] = useState(0);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   // State for Terry's position and physics
   const [terryState, setTerryState] = useState<TerryState>({
@@ -76,6 +77,18 @@ const Terry: React.FC = () => {
     updateTerrySize();
     window.addEventListener('resize', updateTerrySize);
     return () => window.removeEventListener('resize', updateTerrySize);
+  }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    
+    const handleChange = () => {
+      setPrefersReducedMotion(mediaQuery.matches);
+    };
+    
+    setPrefersReducedMotion(mediaQuery.matches);  
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
   // Convert between our two units: pixels, and Terry units (1 terry unit == 1 length of Terry)
@@ -219,7 +232,9 @@ const Terry: React.FC = () => {
       if (lastTimeRef.current !== null) {
         const deltaTime_milliseconds = currentTime - lastTimeRef.current;
         const deltaTime = deltaTime_milliseconds / 1000;
-        updatePhysics(deltaTime);
+
+        if (!prefersReducedMotion) // Don't animate if user prefers reduced motion
+          updatePhysics(deltaTime);
       }
       lastTimeRef.current = currentTime;
       animationFrameRef.current = requestAnimationFrame(animate);
@@ -232,7 +247,7 @@ const Terry: React.FC = () => {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [updatePhysics]);
+  }, [updatePhysics, prefersReducedMotion]);
 
   // Handle clicks on Terry
   const handleClick = useCallback((event: React.MouseEvent) => {
