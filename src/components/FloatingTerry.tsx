@@ -134,7 +134,7 @@ const Terry: React.FC = () => {
         // Apply acceleration towards target velocity, but don't overshoot
         const velocityDiffMagnitude = velocityDiff.magnitude();
         if (velocityDiffMagnitude > 0) {
-          var acceleration = PHYSICS_CONFIG.GO_HOME_ACCELERATION * deltaTime;
+          let acceleration = PHYSICS_CONFIG.GO_HOME_ACCELERATION * deltaTime;
           acceleration = Math.min(acceleration, velocityDiffMagnitude);
           const accelerationVector = velocityDiff.normalized().multiply(acceleration);
           
@@ -175,14 +175,14 @@ const Terry: React.FC = () => {
 
         if (velocityMagnitude > PHYSICS_CONFIG.TARGET_VELOCITY) {
           // Apply deceleration to slow down Terry
-          var decelerationFactor = PHYSICS_CONFIG.TARGET_VELOCITY_CORRECTION_DECELERATION * deltaTime;
+          let decelerationFactor = PHYSICS_CONFIG.TARGET_VELOCITY_CORRECTION_DECELERATION * deltaTime;
           decelerationFactor = Math.min(decelerationFactor, velocityMagnitude - PHYSICS_CONFIG.TARGET_VELOCITY); // Don't decelerate too much and overshoot the target
           
           newState.velocity = newState.velocity.subtract(normalizedVelocity.multiply(decelerationFactor));
         }
         if (velocityMagnitude < PHYSICS_CONFIG.TARGET_VELOCITY) {
           // Apply acceleration to speed up Terry
-          var accelerationFactor = PHYSICS_CONFIG.TARGET_VELOCITY_CORRECTION_ACCELERATION * deltaTime;
+          let accelerationFactor = PHYSICS_CONFIG.TARGET_VELOCITY_CORRECTION_ACCELERATION * deltaTime;
           accelerationFactor = Math.min(accelerationFactor, PHYSICS_CONFIG.TARGET_VELOCITY - velocityMagnitude); // Don't accelerate too much and overshoot the target
                     
           newState.velocity = newState.velocity.add(normalizedVelocity.multiply(accelerationFactor));
@@ -205,7 +205,7 @@ const Terry: React.FC = () => {
         }
         if (angularVelocityMagnitude < PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY) {
           // Apply angular acceleration to speed up Terry's rotation
-          var angularAccelerationFactor = PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY_CORRECTION_ACCELERATION * deltaTime;
+          let angularAccelerationFactor = PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY_CORRECTION_ACCELERATION * deltaTime;
           angularAccelerationFactor = Math.min(angularAccelerationFactor, PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY - angularVelocityMagnitude);
 
           const angularDirection = newState.angularVelocity !== 0 ? (newState.angularVelocity > 0 ? 1 : -1) : (Math.random() < 0.5 ? -1 : 1);
