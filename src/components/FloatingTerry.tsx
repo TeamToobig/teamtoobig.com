@@ -25,6 +25,7 @@ const Terry: React.FC = () => {
 
   const [terrySize, setTerrySize] = useState(0);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // State for Terry's position and physics
   const [terryState, setTerryState] = useState<TerryState>({
@@ -36,8 +37,7 @@ const Terry: React.FC = () => {
     isTurnaroundInProgress: false,
   });
 
-  
-  const PHYSICS_CONFIG = {
+  const BASE_PHYSICS_CONFIG = {
     TURNAROUND_DISTANCE: 0.12, // When Terry is further than this from the center, he will start turning around.
     TURNAROUND_ACCELERATION: 0.01,
     TURNAROUND_ANGLE_MIN: -5,
@@ -59,11 +59,20 @@ const Terry: React.FC = () => {
     TARGET_ANGULAR_VELOCITY_CORRECTION_ACCELERATION: 2,
     TARGET_ANGULAR_VELOCITY_DRAG_COEFFICIENT: 0.98, // Drag coefficient - closer to 1 means less drag, closer to 0 means more drag
 
-
     CLICK_LINEAR_IMPULSE_MAX: 0.5, // Linear impulse applied to Terry when clicking his exact center (scales to 0 towards his edge)
     CLICK_ANGULAR_IMPULSE_MAX: 75, // Angular impulse applied to Terry when clicking his furthest edge (scales to 0 towards his center)
   };
 
+  // Have him move a bit faster on mobile. The screen is smaller, so we need more (relative) movement to be noticeable.
+  const MOBILE_OVERRIDES = {
+    TARGET_VELOCITY: 0.06,
+    TARGET_ANGULAR_VELOCITY: 3.3,
+  };
+
+  const PHYSICS_CONFIG = isMobile 
+    ? { ...BASE_PHYSICS_CONFIG, ...MOBILE_OVERRIDES }
+    : BASE_PHYSICS_CONFIG;
+    
   // Track Terry's size in pixels to use as a scale reference. This allows our physics to be independent of the screen resolution.
   useEffect(() => {
     const updateTerrySize = () => {
@@ -74,9 +83,23 @@ const Terry: React.FC = () => {
       }
     };
 
+    const updateIsMobile = () => {
+      // Consider mobile if screen width is less than 768px OR if it's actually a mobile device
+      const isMobileUserAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const isSmallScreen = window.innerWidth < 768;
+      setIsMobile(isSmallScreen || isMobileUserAgent);
+    };
+
     updateTerrySize();
-    window.addEventListener('resize', updateTerrySize);
-    return () => window.removeEventListener('resize', updateTerrySize);
+    updateIsMobile();
+    
+    const handleResize = () => {
+      updateTerrySize();
+      updateIsMobile();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
@@ -107,7 +130,7 @@ const Terry: React.FC = () => {
       angularVelocity: (Math.random() < 0.5 ? -1 : 1) * PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY,
       isTurnaroundInProgress: false,
     }));
-  }, []);
+  }, [isMobile]);
 
   // Physics update function. Called once per frame by the animation loop, below.
   // deltaTime is the number of seconds (usually small like 0.016) since the last time this was called.
@@ -224,7 +247,7 @@ const Terry: React.FC = () => {
 
       return newState;
     });
-  }, []);
+  }, [isMobile]);
 
   // Animation loop. Calls updatePhysics once per frame.
   useEffect(() => {
