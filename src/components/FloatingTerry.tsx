@@ -292,10 +292,29 @@ const Terry: React.FC = () => {
     const terryRadius = terrySize / 2;
     const normalizedDistance = Math.min(distanceFromCenterPixels / terryRadius, 1);
 
-    // Linear impulse should be maximum at center (distance 0), minimum at edge (distance 1)
-    const linearImpulseMagnitude = PHYSICS_CONFIG.CLICK_LINEAR_IMPULSE_MAX * (1 - normalizedDistance);
-    // Angular impulse should be minimum at center (distance 0), maximum at edge (distance 1)  
-    const angularImpulseMagnitude = PHYSICS_CONFIG.CLICK_ANGULAR_IMPULSE_MAX * normalizedDistance;
+    let linearImpulseMagnitude = 0;
+    let angularImpulseMagnitude = 0;
+    let angularImpulseDirection = 0;
+
+    // Different click reaction behavior on mobile vs desktop.
+    if (isMobile)
+    {
+      // On mobile: tapping the center causes him to spin fastest, tapping the edge causes him to run away from your finger.
+      linearImpulseMagnitude = PHYSICS_CONFIG.CLICK_LINEAR_IMPULSE_MAX * normalizedDistance;
+      angularImpulseMagnitude = PHYSICS_CONFIG.CLICK_ANGULAR_IMPULSE_MAX * (1 - normalizedDistance);
+
+      // The direction he spins when you tap him changes every 7 seconds.
+      angularImpulseDirection = Math.floor(Date.now() / 7000) % 2 === 0 ? -1 : 1;
+    }
+    else
+    {
+      // On desktop: clicking the center causes him to move fastest, clicking the edge causes him to spin fastest (like you're grabbing his hand and flinging him!)
+      linearImpulseMagnitude = PHYSICS_CONFIG.CLICK_LINEAR_IMPULSE_MAX * (1 - normalizedDistance);
+      angularImpulseMagnitude = PHYSICS_CONFIG.CLICK_ANGULAR_IMPULSE_MAX * normalizedDistance;
+
+      // The direction he spins is based on which side of him you click.
+      angularImpulseDirection = clickX > 0 ? -1 : 1;
+    }
     
     // Calculate direction from cursor to Terry's center (opposite of click direction)
     const directionX = distanceFromCenterPixels > 0 ? -clickX / distanceFromCenterPixels : 0;
@@ -304,8 +323,7 @@ const Terry: React.FC = () => {
     const linearImpulseX = directionX * linearImpulseMagnitude;
     const linearImpulseY = directionY * linearImpulseMagnitude;
     
-    const angularDirection = clickX > 0 ? -1 : 1;
-    const angularImpulse = angularDirection * angularImpulseMagnitude;
+    const angularImpulse = angularImpulseDirection * angularImpulseMagnitude;
     
     setTerryState(prevState => ({
       ...prevState,
