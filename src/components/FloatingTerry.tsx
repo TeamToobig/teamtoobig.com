@@ -348,7 +348,6 @@ const Terry: React.FC = () => {
       <img
         ref={imgRef}
         src="/img/terry.webp"
-        alt="Terry"
         onClick={handleClick}
         style={{
           width: '100%',
@@ -370,6 +369,13 @@ const Terry: React.FC = () => {
           msTouchSelect: 'none',
         }}
         draggable={false}
+        alt="" // Intentionally left blank
+        role="presentation"
+        aria-hidden="true"
+
+        // Non-standard attribute just to disable the "visual search" crap in Edge
+        // @ts-ignore
+        disablevisualsearch="true"
       />
     </div>
   );
