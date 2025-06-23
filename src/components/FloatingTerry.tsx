@@ -356,10 +356,18 @@ const Terry: React.FC = () => {
           objectFit: 'contain',
           maxWidth: '80vh',
           maxHeight: '80vh',
-          userSelect: 'none',
           position: 'absolute',
           transform: `translate(${terryToPixels(terryState.position.x)}px, ${terryToPixels(terryState.position.y)}px) rotate(${terryState.rotation}deg)`,
           transition: 'none', // Disable CSS transitions for smooth animation
+
+          // A bunch of crap to prevent browsers from treating Terry as a regular image that you can select etc
+          pointerEvents: 'auto',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          WebkitTouchCallout: 'none',
+          msContentZooming: 'none',
+          msTouchSelect: 'none',
         }}
         draggable={false}
       />
