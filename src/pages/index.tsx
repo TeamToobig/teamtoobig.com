@@ -37,6 +37,13 @@ export default function Home(): ReactNode {
           </header>
         </div>
       </div>
+      <footer className={styles.footer}>
+        <div className={styles.footerContent}>
+          <p className={styles.footerText}>
+            Inquiries: <a href="mailto:hello@teamtoobig.com" className={styles.footerEmail}>hello@teamtoobig.com</a>
+          </p>
+        </div>
+      </footer>
     </Layout>
   );
 }

@@ -8,6 +8,7 @@
   flex: auto;
   width: 100%;
   position: static;
+  min-height: calc(100vh - 120px); /* Account for navbar and footer */
 }
 
 .terryContainer {
@@ -105,6 +106,8 @@
   .mainContainer {
     flex-direction: column;
     gap: 2rem;
+    min-height: auto;
+    padding-bottom: 0;
   }
   
   .terryContainer {
@@ -203,5 +206,64 @@
 @media (min-width: 1920px) {
   .background {
     background-image: url('/img/background/deepfield-2560.webp');
+  }
+}
+
+
+
+.footer {
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  background-color: var(--ifm-footer-background-color);
+  border-top: 1px solid var(--ifm-footer-border-color);
+  z-index: 10;
+}
+
+.footerContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  text-align: center;
+}
+
+.footerText {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ifm-footer-color);
+  margin: 0;
+}
+
+.footerEmail {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.footerEmail:hover {
+  color: var(--ifm-color-primary-dark);
+  text-decoration: underline;
+}
+
+/* On large screens, make footer sticky to bottom */
+@media (min-width: 1100px) {
+  .footer {
+    position: fixed;
+    bottom: 0;
+  }
+  
+  /* Ensure main container doesn't overlap with fixed footer */
+  .mainContainer {
+    padding-bottom: 60px;
+  }
+}
+
+/* On smaller screens, footer follows natural document flow */
+@media (max-width: 1099px) {
+  .footer {
+    position: static;
+    margin-top: 2rem;
   }
 }
