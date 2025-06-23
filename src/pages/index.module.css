@@ -146,7 +146,10 @@
 
 @media (max-width: 768px) {
   .buttons {
-    flex-direction: column;
+    /* Reverse the order of the buttons when they're stacked vertically, so that Apply is on top. */
+    /* I feel in my gut this is how it ought to be, Eliana agrees. */
+    /* I think on mobile it's better to make the CTA more prominent. Also best to spatially separate the two purple parts of the page from one another. */
+    flex-direction: column-reverse;
     gap: 1rem;
   }
   
