@@ -30,14 +30,6 @@
   transform: translateY(-9.5vh);
 }
 
-.heroContent {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
 .heroContainer {
   text-align: center;
   padding: 2rem;
