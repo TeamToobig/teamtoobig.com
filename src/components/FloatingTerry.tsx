@@ -283,12 +283,14 @@ const Terry: React.FC = () => {
 
     // Get click position relative to Terry's center
     const rect = imgRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const clickX = event.clientX - centerX;
-    const clickY = event.clientY - centerY;
+    const terryCenter = Vector2.from(
+      rect.left + rect.width / 2,
+      rect.top + rect.height / 2
+    );
+    const clickPosition = Vector2.from(event.clientX, event.clientY);
+    const clickOffset = clickPosition.subtract(terryCenter);
 
-    const distanceFromCenterPixels = Math.sqrt(clickX * clickX + clickY * clickY);
+    const distanceFromCenterPixels = clickOffset.magnitude();
     const terryRadius = terrySize / 2;
     const normalizedDistance = Math.min(distanceFromCenterPixels / terryRadius, 1);
 
@@ -313,21 +315,20 @@ const Terry: React.FC = () => {
       angularImpulseMagnitude = PHYSICS_CONFIG.CLICK_ANGULAR_IMPULSE_MAX * normalizedDistance;
 
       // The direction he spins is based on which side of him you click.
-      angularImpulseDirection = clickX > 0 ? -1 : 1;
+      angularImpulseDirection = clickOffset.x > 0 ? -1 : 1;
     }
     
     // Calculate direction from cursor to Terry's center (opposite of click direction)
-    const directionX = distanceFromCenterPixels > 0 ? -clickX / distanceFromCenterPixels : 0;
-    const directionY = distanceFromCenterPixels > 0 ? -clickY / distanceFromCenterPixels : 0;
+    const awayDirection = distanceFromCenterPixels > 0 
+      ? clickOffset.multiply(-1).normalized()
+      : new Vector2(0, 1);
     
-    const linearImpulseX = directionX * linearImpulseMagnitude;
-    const linearImpulseY = directionY * linearImpulseMagnitude;
-    
+    const linearImpulse = awayDirection.multiply(linearImpulseMagnitude);
     const angularImpulse = angularImpulseDirection * angularImpulseMagnitude;
     
     setTerryState(prevState => ({
       ...prevState,
-      velocity: prevState.velocity.add(new Vector2(linearImpulseX, linearImpulseY)),
+      velocity: prevState.velocity.add(linearImpulse),
       angularVelocity: prevState.angularVelocity + angularImpulse,
     }));
   }, [terrySize]);
