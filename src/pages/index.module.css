@@ -5,9 +5,9 @@
 
 .mainContainer {
   display: flex;
-  min-height: 100vh;
+  flex: auto;
   width: 100%;
-  position: fixed; /* No scrollbar */
+  position: static;
   z-index: 1;
 }
 
@@ -17,6 +17,8 @@
   justify-content: center;
   flex: 1;
   min-height: 50vh;
+  contain: layout; /* contain layout so child transforms (i.e. Terry) don’t grow scrollable area */
+  overflow: visible; /* don't clip Terry when he escapes the bounds */
 }
 
 
@@ -27,7 +29,7 @@
   justify-content: flex-start;
   flex: 1;
   padding: 2rem 2rem 2rem 0; /* Zero padding on the left, to move the info leftwards towards Terry. */
-  transform: translateY(-9.5vh);
+  transform: translateY(-8.5vh);
 }
 
 .heroContainer {
@@ -101,14 +103,13 @@
 @media (max-width: 1100px) {
   .mainContainer {
     flex-direction: column;
-    height: 100vh;
-    min-height: 100vh;
+    gap: 2rem;
   }
   
   .terryContainer {
     order: 2; /* Terry goes to bottom */
-    flex: 1;
-    min-height: 0;
+    flex: 0 0 50vh;
+    min-height: 50vh;
     align-items: flex-start;
     padding-top: 0.5rem;
   }
