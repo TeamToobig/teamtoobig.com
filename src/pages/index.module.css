@@ -8,7 +8,6 @@
   flex: auto;
   width: 100%;
   position: static;
-  z-index: 1;
 }
 
 .terryContainer {
@@ -19,6 +18,7 @@
   min-height: 50vh;
   contain: layout; /* contain layout so child transforms (i.e. Terry) don’t grow scrollable area */
   overflow: visible; /* don't clip Terry when he escapes the bounds */
+  z-index: 0;
 }
 
 
@@ -30,6 +30,7 @@
   flex: 1;
   padding: 2rem 2rem 2rem 0; /* Zero padding on the left, to move the info leftwards towards Terry. */
   transform: translateY(-8.5vh);
+  z-index: 1;
 }
 
 .heroContainer {
