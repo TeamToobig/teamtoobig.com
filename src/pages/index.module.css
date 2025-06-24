@@ -3,6 +3,8 @@
  * and scoped locally.
  */
 
+ @import url('https://fonts.googleapis.com/css2?family=Inclusive+Sans:ital@0;1&family=Space+Grotesk:wght@300..700&display=swap');
+
 .mainContainer {
   display: flex;
   flex: auto;
@@ -52,9 +54,10 @@
 }
 
 .heroSubtitle {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Space+Grotesk', sans-serif;
   font-size: 1.5rem;
-  font-weight: 400;
+  font-weight: 450;
+  letter-spacing: 0.08rem;
   margin-bottom: 2rem;
   color: white;
   text-shadow: 0 0 8px black, 0 0 5px black;
