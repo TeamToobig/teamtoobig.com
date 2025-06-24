@@ -50,17 +50,18 @@
   font-weight: 800;
   margin-bottom: 2rem;
   color: white;
-  text-shadow: 0 0 4px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 0 8px black, 0 0 5px black, 0 0 3px black;
 }
 
 .heroSubtitle {
   font-family: 'Space+Grotesk', sans-serif;
   font-size: 1.5rem;
   font-weight: 450;
-  letter-spacing: 0.08rem;
+  letter-spacing: 0.07rem;
+  white-space: nowrap;
   margin-bottom: 2rem;
   color: white;
-  text-shadow: 0 0 8px black, 0 0 5px black;
+  text-shadow: 0 0 8px black, 0 0 5px black, 0 0 3px black;
 }
 
 
@@ -143,6 +144,7 @@
   
   .heroSubtitle {
     font-size: 1.2rem;
+    white-space: normal;
   }
   
   .heroContainer {
@@ -168,7 +170,7 @@
   }
   
   .infoContainer {
-    padding: 1rem;
+    padding: 1rem 0.9rem 1rem 0.9rem;
     min-height: 50vh;
   }
   
