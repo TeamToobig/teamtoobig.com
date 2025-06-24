@@ -190,22 +190,91 @@
   z-index: -1;
 }
 
-/* Responsive images for larger screens */
-@media (min-width: 600px) {
-  .background {
-    background-image: url('/img/background/deepfield-960.webp');
+/* Landscape orientation - use horizontal resolution for image selection */
+@media (orientation: landscape) {
+  /* Standard resolution screens (1x DPR) */
+  @media (min-width: 600px) and (max-resolution: 1.5x) {
+    .background {
+      background-image: url('/img/background/deepfield-960.webp');
+    }
+  }
+
+  @media (min-width: 1200px) and (max-resolution: 1.5x) {
+    .background {
+      background-image: url('/img/background/deepfield-1920.webp');
+    }
+  }
+
+  @media (min-width: 1920px) and (max-resolution: 1.5x) {
+    .background {
+      background-image: url('/img/background/deepfield-2560.webp');
+    }
+  }
+
+  /* High-DPI screens (1.5x+ DPR) - account for device pixel ratio */
+  @media (min-width: 300px) and (min-resolution: 1.5x) {
+    .background {
+      background-image: url('/img/background/deepfield-960.webp');
+    }
+  }
+
+  @media (min-width: 600px) and (min-resolution: 1.5x) {
+    .background {
+      background-image: url('/img/background/deepfield-1920.webp');
+    }
+  }
+
+  @media (min-width: 960px) and (min-resolution: 1.5x) {
+    .background {
+      background-image: url('/img/background/deepfield-2560.webp');
+    }
   }
 }
 
-@media (min-width: 1200px) {
+/* Portrait orientation - rotate background and use vertical resolution for image selection */
+@media (orientation: portrait) {
   .background {
-    background-image: url('/img/background/deepfield-1920.webp');
+    transform: rotate(90deg);
+    width: 100vh;
+    height: 100vw;
   }
-}
 
-@media (min-width: 1920px) {
-  .background {
-    background-image: url('/img/background/deepfield-2560.webp');
+  /* Account for device pixel ratio - use physical resolution for high-DPI screens */
+  @media (min-height: 600px) and (max-resolution: 1.5x) {
+    .background {
+      background-image: url('/img/background/deepfield-960.webp');
+    }
+  }
+
+  @media (min-height: 1200px) and (max-resolution: 1.5x) {
+    .background {
+      background-image: url('/img/background/deepfield-1920.webp');
+    }
+  }
+
+  @media (min-height: 1920px) and (max-resolution: 1.5x) {
+    .background {
+      background-image: url('/img/background/deepfield-2560.webp');
+    }
+  }
+
+  /* High-DPI screens (1.5x+ DPR) - multiply logical pixels by device pixel ratio */
+  @media (min-height: 300px) and (min-resolution: 1.5x) {
+    .background {
+      background-image: url('/img/background/deepfield-960.webp');
+    }
+  }
+
+  @media (min-height: 600px) and (min-resolution: 1.5x) {
+    .background {
+      background-image: url('/img/background/deepfield-1920.webp');
+    }
+  }
+
+  @media (min-height: 960px) and (min-resolution: 1.5x) {
+    .background {
+      background-image: url('/img/background/deepfield-2560.webp');
+    }
   }
 }
 
