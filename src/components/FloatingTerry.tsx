@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Vector2 } from '../utils/Vector2';
+import { Random } from '../utils/Random';
 
 // UNITS IN THIS FILE:
 // - All distances are in multiples of Terry's length. So if positionX is 0.5, Terry is half a Terry length to the right of his starting position.
@@ -120,14 +121,13 @@ const Terry: React.FC = () => {
 
   // Initialize Terry
   useEffect(() => {
-    const angleRadians = Math.random() * 2 * Math.PI; // Random direction
-    const initialVelocity = Vector2.fromAngle(angleRadians, PHYSICS_CONFIG.TARGET_VELOCITY);
+    const initialVelocity = Vector2.fromAngle(Random.angleRadians(), PHYSICS_CONFIG.TARGET_VELOCITY);
     
     setTerryState(prevState => ({
       ...prevState,
       position: Vector2.zero(),
       velocity: initialVelocity,
-      angularVelocity: (Math.random() < 0.5 ? -1 : 1) * PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY,
+      angularVelocity: Random.sign() * PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY,
       isTurnaroundInProgress: false,
     }));
   }, [isMobile]);
@@ -171,8 +171,8 @@ const Terry: React.FC = () => {
         
         // Pick the new direction to accelerate in
         const degreesToRadians = (Math.PI / 180);
-        const centerAngle = toCenter.angle();
-        const randomOffset = Math.random() * (PHYSICS_CONFIG.TURNAROUND_ANGLE_MAX - PHYSICS_CONFIG.TURNAROUND_ANGLE_MIN) + PHYSICS_CONFIG.TURNAROUND_ANGLE_MIN;
+        const randomOffset = Random.range(PHYSICS_CONFIG.TURNAROUND_ANGLE_MIN, PHYSICS_CONFIG.TURNAROUND_ANGLE_MAX);
+        const centerAngle = toCenter.angleRadians();
         const correctionAngle = centerAngle + randomOffset * degreesToRadians;
         
         newState.turnaroundDirection = Vector2.fromAngle(correctionAngle);
@@ -231,7 +231,7 @@ const Terry: React.FC = () => {
           let angularAccelerationFactor = PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY_CORRECTION_ACCELERATION * deltaTime;
           angularAccelerationFactor = Math.min(angularAccelerationFactor, PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY - angularVelocityMagnitude);
 
-          const angularDirection = newState.angularVelocity !== 0 ? (newState.angularVelocity > 0 ? 1 : -1) : (Math.random() < 0.5 ? -1 : 1);
+          const angularDirection = newState.angularVelocity !== 0 ? (newState.angularVelocity > 0 ? 1 : -1) : Random.sign();
           newState.angularVelocity += angularDirection * angularAccelerationFactor;
         }
       }

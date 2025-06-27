@@ -10,10 +10,10 @@ export class Vector2 {
     return new Vector2(0, 0);
   }
 
-  static fromAngle(angle: number, magnitude: number = 1): Vector2 {
+  static fromAngle(angleRadians: number, magnitude: number = 1): Vector2 {
     return new Vector2(
-      Math.cos(angle) * magnitude,
-      Math.sin(angle) * magnitude
+      Math.cos(angleRadians) * magnitude,
+      Math.sin(angleRadians) * magnitude
     );
   }
 
@@ -42,7 +42,7 @@ export class Vector2 {
     return new Vector2(this.x * scalar, this.y * scalar);
   }
 
-  angle(): number {
+  angleRadians(): number {
     return Math.atan2(this.y, this.x);
   }
 
