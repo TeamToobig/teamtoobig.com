@@ -41,8 +41,8 @@ const Terry: React.FC = () => {
   const BASE_PHYSICS_CONFIG = {
     TURNAROUND_DISTANCE: 0.12, // When Terry is further than this from the center, he will start turning around.
     TURNAROUND_ACCELERATION: 0.01,
-    TURNAROUND_ANGLE_MIN: -5,
-    TURNAROUND_ANGLE_MAX: 20, // Bias Terry towards moving around in a counterclockwise circle.
+    TURNAROUND_ANGLE_DEGREES_MIN: -5,
+    TURNAROUND_ANGLE_DEGREES_MAX: 20, // Bias Terry towards moving around in a counterclockwise circle.
 
     GO_HOME_DISTANCE: 0.3, // When Terry is further than this from the center, he will go STRAIGHT back to the center, not the indirect path of a turnaround.
     GO_HOME_ACCELERATION: 0.6,
@@ -171,11 +171,10 @@ const Terry: React.FC = () => {
         
         // Pick the new direction to accelerate in
         const degreesToRadians = (Math.PI / 180);
-        const randomOffset = Random.range(PHYSICS_CONFIG.TURNAROUND_ANGLE_MIN, PHYSICS_CONFIG.TURNAROUND_ANGLE_MAX);
-        const centerAngle = toCenter.angleRadians();
-        const correctionAngle = centerAngle + randomOffset * degreesToRadians;
+        const randomOffsetDegrees = Random.range(PHYSICS_CONFIG.TURNAROUND_ANGLE_DEGREES_MIN, PHYSICS_CONFIG.TURNAROUND_ANGLE_DEGREES_MAX);
+        const correctionAngleRadians = toCenter.angleRadians() + randomOffsetDegrees * degreesToRadians;
         
-        newState.turnaroundDirection = Vector2.fromAngle(correctionAngle);
+        newState.turnaroundDirection = Vector2.fromAngle(correctionAngleRadians);
         
         newState.isTurnaroundInProgress = true;
       }
