@@ -48,15 +48,15 @@ const Terry: React.FC = () => {
     GO_HOME_ACCELERATION: 0.6,
     GO_HOME_TARGET_SPEED: 1,
 
-    // Terry will try to settle into these velocities, so long as he is within range.
-    TARGET_VELOCITY: 0.018,
-    TARGET_ANGULAR_VELOCITY: 1.8,
+    // Terry will try to settle into these speeds, so long as he is within range.
+    TARGET_SPEED: 0.018,
+    TARGET_ANGULAR_SPEED: 1.8,
 
-    TARGET_VELOCITY_RANGE: 0.2,
+    TARGET_SPEED_RANGE: 0.2,
 
-    // While within range, if Terry is faster/slower than the target velocities, these accelerations/decelerations will be applied to fix him.
-    TARGET_VELOCITY_CORRECTION_ACCELERATION: 0.004,
-    TARGET_VELOCITY_CORRECTION_DECELERATION: 0.8,
+    // While within range, if Terry is faster/slower than the target speeds, these accelerations/decelerations will be applied to fix him.
+    TARGET_SPEED_CORRECTION_ACCELERATION: 0.004,
+    TARGET_SPEED_CORRECTION_DECELERATION: 0.8,
     TARGET_ANGULAR_VELOCITY_CORRECTION_ACCELERATION: 2,
     TARGET_ANGULAR_VELOCITY_DRAG_COEFFICIENT: 0.98, // Drag coefficient - closer to 1 means less drag, closer to 0 means more drag
 
@@ -121,13 +121,13 @@ const Terry: React.FC = () => {
 
   // Initialize Terry
   useEffect(() => {
-    const initialVelocity = Vector2.fromAngle(Random.angleRadians(), PHYSICS_CONFIG.TARGET_VELOCITY);
+    const initialVelocity = Vector2.fromAngle(Random.angleRadians(), PHYSICS_CONFIG.TARGET_SPEED);
     
     setTerryState(prevState => ({
       ...prevState,
       position: Vector2.zero(),
       velocity: initialVelocity,
-      angularVelocity: Random.sign() * PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY,
+      angularVelocity: Random.sign() * PHYSICS_CONFIG.TARGET_ANGULAR_SPEED,
       isTurnaroundInProgress: false,
     }));
   }, [isMobile]);
@@ -192,21 +192,21 @@ const Terry: React.FC = () => {
       }
 
       // Apply velocity targeting (deceleration when too fast, acceleration when too slow) within range
-      if (distanceFromCenter < PHYSICS_CONFIG.TARGET_VELOCITY_RANGE) {
+      if (distanceFromCenter < PHYSICS_CONFIG.TARGET_SPEED_RANGE) {
         const velocityMagnitude = newState.velocity.magnitude();
         const normalizedVelocity = newState.velocity.normalized();
 
-        if (velocityMagnitude > PHYSICS_CONFIG.TARGET_VELOCITY) {
+        if (velocityMagnitude > PHYSICS_CONFIG.TARGET_SPEED) {
           // Apply deceleration to slow down Terry
-          let decelerationFactor = PHYSICS_CONFIG.TARGET_VELOCITY_CORRECTION_DECELERATION * deltaTime;
-          decelerationFactor = Math.min(decelerationFactor, velocityMagnitude - PHYSICS_CONFIG.TARGET_VELOCITY); // Don't decelerate too much and overshoot the target
+          let decelerationFactor = PHYSICS_CONFIG.TARGET_SPEED_CORRECTION_DECELERATION * deltaTime;
+          decelerationFactor = Math.min(decelerationFactor, velocityMagnitude - PHYSICS_CONFIG.TARGET_SPEED); // Don't decelerate too much and overshoot the target
           
           newState.velocity = newState.velocity.subtract(normalizedVelocity.multiply(decelerationFactor));
         }
-        if (velocityMagnitude < PHYSICS_CONFIG.TARGET_VELOCITY) {
+        if (velocityMagnitude < PHYSICS_CONFIG.TARGET_SPEED) {
           // Apply acceleration to speed up Terry
-          let accelerationFactor = PHYSICS_CONFIG.TARGET_VELOCITY_CORRECTION_ACCELERATION * deltaTime;
-          accelerationFactor = Math.min(accelerationFactor, PHYSICS_CONFIG.TARGET_VELOCITY - velocityMagnitude); // Don't accelerate too much and overshoot the target
+          let accelerationFactor = PHYSICS_CONFIG.TARGET_SPEED_CORRECTION_ACCELERATION * deltaTime;
+          accelerationFactor = Math.min(accelerationFactor, PHYSICS_CONFIG.TARGET_SPEED - velocityMagnitude); // Don't accelerate too much and overshoot the target
                     
           newState.velocity = newState.velocity.add(normalizedVelocity.multiply(accelerationFactor));
         }
@@ -214,22 +214,22 @@ const Terry: React.FC = () => {
         
         const angularVelocityMagnitude = Math.abs(newState.angularVelocity);
         
-        if (angularVelocityMagnitude > PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY) {
+        if (angularVelocityMagnitude > PHYSICS_CONFIG.TARGET_ANGULAR_SPEED) {
           // Apply angular drag - higher angular velocity results in more drag
           const dragFactor = Math.pow(PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY_DRAG_COEFFICIENT, deltaTime * 60); // Normalize to 60fps for consistent behavior
           newState.angularVelocity *= dragFactor;
           
           // If we're now close to the target, clamp to target to avoid oscillation
           const newMagnitude = Math.abs(newState.angularVelocity);
-          if (newMagnitude <= PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY) {
+          if (newMagnitude <= PHYSICS_CONFIG.TARGET_ANGULAR_SPEED) {
             const direction = newState.angularVelocity > 0 ? 1 : -1;
-            newState.angularVelocity = direction * PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY;
+            newState.angularVelocity = direction * PHYSICS_CONFIG.TARGET_ANGULAR_SPEED;
           }
         }
-        if (angularVelocityMagnitude < PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY) {
+        if (angularVelocityMagnitude < PHYSICS_CONFIG.TARGET_ANGULAR_SPEED) {
           // Apply angular acceleration to speed up Terry's rotation
           let angularAccelerationFactor = PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY_CORRECTION_ACCELERATION * deltaTime;
-          angularAccelerationFactor = Math.min(angularAccelerationFactor, PHYSICS_CONFIG.TARGET_ANGULAR_VELOCITY - angularVelocityMagnitude);
+          angularAccelerationFactor = Math.min(angularAccelerationFactor, PHYSICS_CONFIG.TARGET_ANGULAR_SPEED - angularVelocityMagnitude);
 
           const angularDirection = newState.angularVelocity !== 0 ? (newState.angularVelocity > 0 ? 1 : -1) : Random.sign();
           newState.angularVelocity += angularDirection * angularAccelerationFactor;
