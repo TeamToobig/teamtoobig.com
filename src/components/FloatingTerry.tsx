@@ -338,7 +338,6 @@ const Terry: React.FC = () => {
       style={{
         width: '100%',
         height: '100%',
-        maxWidth: '80vh',
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
@@ -353,7 +352,7 @@ const Terry: React.FC = () => {
         
         style={{
           position: 'absolute',
-          width: '100%',
+          width: 'min(80vh, 80vw, 100%)',
           maxWidth: '80vh',
           height: 'auto',
           aspectRatio: '1 / 1',
