@@ -338,26 +338,29 @@ const Terry: React.FC = () => {
       style={{
         width: '100%',
         height: '100%',
+        maxWidth: '80vh',
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
-      <img
-        ref={imgRef}
-        src="/img/homepage/terry/body.png"
+      <div
         onClick={handleClick}
+        draggable={false}
+        role="presentation"
+        aria-hidden="true"
+        
         style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'contain',
-          maxWidth: '80vh',
-          maxHeight: '80vh',
           position: 'absolute',
-          transform: `translate(${terryToPixels(terryState.position.x)}px, ${terryToPixels(terryState.position.y)}px) rotate(${terryState.rotation}deg)`,
+          width: '100%',
+          maxWidth: '80vh',
+          height: 'auto',
+          aspectRatio: '1 / 1',
+          
+          //transform: `translate(${terryToPixels(terryState.position.x)}px, ${terryToPixels(terryState.position.y)}px) rotate(${terryState.rotation}deg)`,
           transition: 'none', // Disable CSS transitions for smooth animation
-
+          
           // A bunch of crap to prevent browsers from treating Terry as a regular image that you can select etc
           pointerEvents: 'auto',
           userSelect: 'none',
@@ -367,15 +370,29 @@ const Terry: React.FC = () => {
           msContentZooming: 'none',
           msTouchSelect: 'none',
         }}
-        draggable={false}
-        alt="" // Intentionally left blank
-        role="presentation"
-        aria-hidden="true"
 
         // Non-standard attribute just to disable the "visual search" crap in Edge
         // @ts-ignore
         disablevisualsearch="true"
-      />
+      >
+          <img
+            ref={imgRef}
+            src="/img/homepage/terry/body.png"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+            }}
+          />
+
+          <img src="/img/homepage/terry/eye-1.png" style={{
+            width: `12.5%`,
+            position: 'absolute',
+
+            top: '33.2%',
+            left: '38.18%',
+            }} />
+      </div>
     </div>
   );
 };

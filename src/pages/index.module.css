@@ -18,7 +18,6 @@
   align-items: center;
   justify-content: center;
   flex: 1;
-  min-height: 50vh;
   contain: layout; /* contain layout so child transforms (i.e. Terry) don’t grow scrollable area */
   overflow: visible; /* don't clip Terry when he escapes the bounds */
   z-index: 0;
@@ -117,7 +116,6 @@
   .terryContainer {
     order: 2; /* Terry goes to bottom */
     flex: 0 0 50vh;
-    min-height: 50vh;
     align-items: flex-start;
     padding-top: 0.5rem;
   }
@@ -171,10 +169,6 @@
   
   .infoContainer {
     padding: 1rem 0.9rem 1rem 0.9rem;
-    min-height: 50vh;
-  }
-  
-  .terryContainer {
     min-height: 50vh;
   }
 }
