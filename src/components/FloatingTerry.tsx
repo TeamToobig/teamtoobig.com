@@ -346,7 +346,7 @@ const Terry: React.FC = () => {
     >
       <img
         ref={imgRef}
-        src="/img/terry.webp"
+        src="/img/homepage/terry/body.png"
         onClick={handleClick}
         style={{
           width: '100%',
