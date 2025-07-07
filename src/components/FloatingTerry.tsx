@@ -336,14 +336,17 @@ const Terry: React.FC = () => {
     <div 
       ref={containerRef}
       style={{
+        containerType: 'size',
+        position: 'relative',
         width: '100%',
         height: '100%',
-        position: 'relative',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
+      {/* This div is the parent of Terry's body and eyeball images. */}
+      {/* We make it fit within its parent while maintaining a square aspect ratio. */}
       <div
         onClick={handleClick}
         draggable={false}
@@ -352,12 +355,13 @@ const Terry: React.FC = () => {
         
         style={{
           position: 'absolute',
-          width: 'min(80vh, 80vw, 100%)',
-          maxWidth: '80vh',
-          height: 'auto',
+          width: 'min(100cqw, 100cqh, 80vh)',
+          height: 'min(100cqw, 100cqh, 80vh)',
           aspectRatio: '1 / 1',
+          inset: '0',
+          margin: 'auto',
           
-          //transform: `translate(${terryToPixels(terryState.position.x)}px, ${terryToPixels(terryState.position.y)}px) rotate(${terryState.rotation}deg)`,
+          transform: `translate(${terryToPixels(terryState.position.x)}px, ${terryToPixels(terryState.position.y)}px) rotate(${terryState.rotation}deg)`,
           transition: 'none', // Disable CSS transitions for smooth animation
           
           // A bunch of crap to prevent browsers from treating Terry as a regular image that you can select etc
