@@ -337,12 +337,8 @@ const Terry: React.FC = () => {
       ref={containerRef}
       style={{
         containerType: 'size',
-        position: 'relative',
         width: '100%',
         height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
       }}
     >
       {/* This div is the parent of Terry's body and eyeball images. */}
@@ -381,20 +377,21 @@ const Terry: React.FC = () => {
           <img
             ref={imgRef}
             src="/img/homepage/terry/body.png"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-            }}
           />
 
-          <img src="/img/homepage/terry/eye-1.png" style={{
-            width: `12.5%`,
-            position: 'absolute',
+          <img 
+            src="/img/homepage/terry/eye-1.png" 
+            style={{
+              width: `12.5%`,
+              position: 'absolute',
 
-            top: '33.2%',
-            left: '38.18%',
-            }} />
+              top: '33.2%',
+              left: '38.18%',
+
+              transform: `translate(${terryToPixels(0)}px, ${terryToPixels(0)}px) rotate(${0}deg)`,
+              transition: 'none',
+            }} 
+          />
       </div>
     </div>
   );
